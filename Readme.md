@@ -8,7 +8,7 @@ run with `make run`
 TIP: To exit qemu press ALT+2 and type quit
 
 # Error Codes
-- 0 = not multiboot2 compatible bootloader
+- 0 = no multiboot2 compatible bootloader
 
 # Docs
 - [multiboot](http://wiki.osdev.org/Multiboot)

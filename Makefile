@@ -13,6 +13,16 @@ assembly_source_files := $(wildcard src/arch/$(arch)/*.asm)
 assembly_object_files := $(patsubst src/arch/$(arch)/%.asm, \
 	build/arch/$(arch)/asm/%.o, $(assembly_source_files))
 
+# -m elf_i386 force 32 bit emulation
+LD_FLAGS_x86 := -m elf_i386
+GCC_FLAGS_x86 := -m32
+NASM_FLAGS_x86 := -f elf32
+
+LD_FLAGS := $(LD_FLAGS_$(arch))
+GCC_FLAGS := $(GCC_FLAGS_$(arch))
+NASM_FLAGS := $(NASM_FLAGS_$(arch))
+
+
 .PHONY: all clean run iso
 
 all: $(kernel)
@@ -32,20 +42,17 @@ $(iso): $(kernel) $(grub_cfg)
 	@grub-mkrescue -o $(iso) build/isofiles 2> /dev/null
 	@rm -r build/isofiles
 
-# depends on object files and linker script
-$(kernel): $(assembly_object_files) $(linker_script) c-kernel
-	# -m elf_i386 force 32 bit emulation
-	ld -m elf_i386 -n -T $(linker_script) -o $(kernel) $(assembly_object_files) $(kernel_object_files)
-
-c-kernel: $(kernel_object_files)
+# depends on asm object files, linker script and kernel object files
+$(kernel): $(assembly_object_files) $(linker_script) $(kernel_object_files)
+	@ld $(LD_FLAGS) -n -T $(linker_script) -o $(kernel) $(assembly_object_files) $(kernel_object_files)
 
 # compile c files
-build/arch/x86/c/%.o: src/arch/$(arch)/%.c
+build/arch/$(arch)/c/%.o: src/arch/$(arch)/%.c
 	@mkdir -p $(shell dirname $@)
-	@gcc -m32 -c $< -o $@
+	@gcc $(GCC_FLAGS) -c $< -o $@
 
 # compile assembly files
 # depends on asm source files make only builds this if the input files have changed
-build/arch/x86/asm/%.o: src/arch/$(arch)/%.asm
+build/arch/$(arch)/asm/%.o: src/arch/$(arch)/%.asm
 	@mkdir -p $(shell dirname $@)
-	@nasm -f elf32 $< -o $@
+	@nasm $(NASM_FLAGS) $< -o $@
