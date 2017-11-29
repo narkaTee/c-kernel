@@ -2,6 +2,7 @@
 - qemu-system-x86-64
 - nasm
 - xorriso
+- libc6-dev-i386 (for x86 builds)
 
 run with `make run`
 

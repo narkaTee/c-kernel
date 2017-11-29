@@ -1,29 +1,34 @@
+#include "lib/vga-buffer.c"
+
+
 void kernel_main(void) {
     const char *str = "my first 32bit kernel";
-    char *vidptr = (char*)0xb8000; //video mem begins here.
+    struct screen_char *vidptr = (struct screen_char*)0xb8000; //vga text buffer begins here.
     unsigned int i = 0;
     unsigned int j = 0;
+
+    //Prepare the color code
+    struct color_code cc = get_color_code(colorBlack, colorMagenta);
 
     /* this loops clears the screen
     * there are 25 lines each of 80 columns; each element takes 2 bytes */
     while(j < 80 * 25 * 2) {
-        /* blank character */
-        vidptr[j] = ' ';
-        /* attribute-byte - light grey on black screen */
-        vidptr[j+1] = 0x07;
-        j = j + 2;
+        struct screen_char sc = {' ', cc};
+        vidptr[j] = sc;
+        j = j + 1;
     }
 
     j = 0;
 
     /* this loop writes the string to video memory */
     while(str[j] != '\0') {
-        /* the character's ascii */
-        vidptr[i] = str[j];
-        /* attribute-byte: give character black bg and light grey fg */
-        vidptr[i+1] = 0x07;
+        //Prep char bytes:
+        // 1. char ascii
+        // 2. color code
+        struct screen_char sc = {str[j], cc};
+        vidptr[i] = sc;
         ++j;
-        i = i + 2;
+        i = i + 1;
     }
     return;
 }
